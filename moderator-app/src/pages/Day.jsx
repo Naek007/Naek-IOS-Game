@@ -42,7 +42,7 @@ export default function Day() {
 
   const isHost = roomData.host === playerName;
   const isModerator = roomData.players[playerName]?.role === 'moderator';
-  const allPlayers = Object.values(roomData.players || {});
+  const allPlayers = Object.values(roomData.players || {}).filter(Boolean);
   const livingPlayers = allPlayers.filter(p => !p.isDead && p.role !== 'moderator');
   const gameData = roomData.gameData || {};
   const round = roomData.round || 1;
@@ -66,11 +66,22 @@ export default function Day() {
 
   // Helper to check win conditions
   const checkWinCondition = (players) => {
+    // === SALEM: แม่มดหมด=ชาวเมืองชนะ / แม่มด>=ชาวเมือง=แม่มดชนะ ===
+    if (roomData.gameType === 'salem') {
+      const livingS = Object.values(players).filter(Boolean).filter(p => !p.isDead && p.role !== 'moderator');
+      const witchesS = livingS.filter(p => p.role === 'witch').length;
+      const townS = livingS.length - witchesS;
+      if (witchesS === 0) return 'salem_town';
+      if (witchesS >= townS) return 'salem_witch';
+      return null;
+    }
+
     // Beggar Win (if dead)
-    const beggarDead = Object.values(players).some(p => p.role === 'beggar' && p.isDead);
+    const allP = Object.values(players).filter(Boolean);
+    const beggarDead = allP.some(p => p.role === 'beggar' && p.isDead);
     if (beggarDead) return 'beggar';
 
-    const living = Object.values(players).filter(p => !p.isDead && p.role !== 'moderator');
+    const living = allP.filter(p => !p.isDead && p.role !== 'moderator');
     
     // Cult Leader Win
     const cultMembers = gameData.cultMembers || [];
@@ -97,6 +108,7 @@ export default function Day() {
   };
 
   const handleExecute = async (targetName) => {
+   try {
     const updates = {};
     const updatedPlayers = JSON.parse(JSON.stringify(roomData.players));
     const lovers = gameData.lovers || [];
@@ -155,7 +167,7 @@ export default function Day() {
       const dgTarget = gameData.doppelgangerTarget;
       deadQueue.forEach(name => {
         if (dgTarget === name) {
-          const dgName = Object.values(updatedPlayers).find(p => p.role === 'doppelganger')?.name;
+          const dgName = Object.values(updatedPlayers).filter(Boolean).find(p => p.role === 'doppelganger')?.name;
           if (dgName && !updatedPlayers[dgName].isDead) {
             updates[`rooms/${roomId}/players/${dgName}/role`] = updatedPlayers[name].role;
             updatedPlayers[dgName].role = updatedPlayers[name].role;
@@ -166,7 +178,7 @@ export default function Day() {
       // 5. Check if Wolf Cub died
       deadQueue.forEach(name => {
         if (roomData.players[name]?.role === 'wolf_cub') {
-          updates[`rooms/${roomId}/gameData/wolvesDoubleKill`] = true;
+          updates[`rooms/${roomId}/gameData/wolvesDoubleKillForRound`] = (roomData.round || 1) + 1;
         }
       });
 
@@ -193,7 +205,8 @@ export default function Day() {
         
         if (nextP === 'night') {
           updates[`rooms/${roomId}/round`] = (roomData.round || 1) + 1;
-          updates[`rooms/${roomId}/currentTurn`] = 'doppelganger'; 
+          updates[`rooms/${roomId}/currentTurn`] = 'werewolf';
+          updates[`rooms/${roomId}/nightActions`] = { werewolfVotes: {}, werewolfTarget: null };
         }
         await update(ref(db), updates);
         return;
@@ -216,7 +229,7 @@ export default function Day() {
       const thugTargets = roomData.gameData?.thugTargets || [];
       if (thugTargets.length >= 1) { // Variable length now
         const allTargetsDead = thugTargets.every(t => updatedPlayers[t]?.isDead);
-        const thugDead = Object.values(updatedPlayers).find(p => p.role === 'thug')?.isDead;
+        const thugDead = Object.values(updatedPlayers).filter(Boolean).find(p => p.role === 'thug')?.isDead;
         if (allTargetsDead && !thugDead) {
           winner = winner + '_and_thug';
         }
@@ -229,11 +242,16 @@ export default function Day() {
       updates[`rooms/${roomId}/status`] = 'night';
       updates[`rooms/${roomId}/round`] = (roomData.round || 1) + 1;
       
-      // Reset night actions
-      updates[`rooms/${roomId}/currentTurn`] = 'doppelganger'; // Reset queue
+      // Reset night actions — ล้าง flag คืนก่อน ไม่งั้นคืนใหม่ไม่มีใครตื่น (วนไม่จบ)
+      updates[`rooms/${roomId}/currentTurn`] = 'werewolf'; // Reset queue
+      updates[`rooms/${roomId}/nightActions`] = { werewolfVotes: {}, werewolfTarget: null };
     }
 
     await update(ref(db), updates);
+   } catch (err) {
+     alert('แขวนคอไม่สำเร็จ: ' + (err?.message || err));
+     console.error('handleExecute error:', err);
+   }
   };
 
   return (

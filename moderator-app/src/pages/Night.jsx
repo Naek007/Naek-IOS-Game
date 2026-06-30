@@ -3,12 +3,36 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
+import SalemNight from './SalemNight';
 
+// เรียงตามคอลัมน์ชีต 1-NIGHTS (หมาป่า → ... → เจ้าลัทธิ)
+// บทที่ชีตไม่มีคอลัมน์ (ดูข้อมูลเฉยๆ) แทรกไว้ตามตำแหน่งที่เหมาะสม
 const WAKE_ORDER = [
-  'doppelganger', 'mason', 'magic_eyes', 'thug', 'cupid', 'dire_wolf', 'minion',
-  'bodyguard', 'hag', 'mage', 'cult_leader', 'chupacabra', 'vampire',
-  'werewolf', 'dark_witch', 'seer', 'psychic', 'revealer', 'paranormal_detective',
-  'huntress', 'troublemaker', 'priest', 'witch', 'drunk', 'insomniac'
+  'werewolf',              // [ชีต] หมาป่าจะฆ่าใคร (ลูกหมาป่าตื่นดูด้วย)
+  'dark_witch',            // (แทรก) ฝั่งหมาป่า — หา Seer
+  'minion',                // (แทรก) ฝั่งหมาป่า — รู้ว่าใครคือหมาป่า
+  'dire_wolf',             // (แทรก) ฝั่งหมาป่า — เลือกสหายคืนแรก
+  'cupid',                 // [ชีต] Cupid เลือกคู่
+  'thug',                  // [ชีต] อันธพาลเลือกเป้าหมาย
+  'chupacabra',            // [ชีต] ซูปราคาบราจะฆ่าใคร
+  'doppelganger',          // [ชีต] ภูตจำแลงเลือกเป้าหมาย
+  'mason',                 // (แทรก) คืนแรก — รู้จักเพื่อนเมสัน
+  'magic_eyes',            // (แทรก) คืนแรก — รู้ว่าใครคือ Seer
+  'vampire',               // [ชีต] แวมไพร์จะฆ่าใคร
+  'mage',                  // [ชีต] จอมเวทเสกใครเป็นใบ้
+  'troublemaker',          // [ชีต] ตัวป่วน
+  'priest',                // [ชีต] นักบวชให้พร
+  'bodyguard',             // [ชีต] บอดี้การ์ดปกป้อง
+  'revealer',              // [ชีต] ผู้เผยตัวตน
+  'huntress',              // [ชีต] พรานหญิง
+  'hag',                   // [ชีต] แม่เฒ่า
+  'seer',                  // (แทรก) ส่องดูดี/ร้าย
+  'psychic',               // (แทรก) ส่องพลังพิเศษ
+  'paranormal_detective',  // (แทรก) นักสืบลี้ลับ
+  'witch',                 // [ชีต] แม่มดปกป้อง/ฆ่า (ต้องอยู่หลังหมาป่า)
+  'cult_leader',           // [ชีต] เจ้าลัทธิ
+  'drunk',                 // (แทรก) คืนที่ 3 รู้บทจริง
+  'insomniac'              // (แทรก) ปิดท้าย — เช็คคนซ้าย/ขวาตื่นไหม
 ];
 
 // All wolf roles that wake up together at night
@@ -16,6 +40,40 @@ const WOLF_ROLES = ['werewolf', 'lone_wolf', 'wolf_cub', 'dire_wolf', 'wolfman']
 // Wolf roles that can actually cast a kill vote (wolf_cub CANNOT vote)
 const WOLF_VOTERS = ['werewolf', 'lone_wolf', 'dire_wolf', 'wolfman'];
 const NON_SPECIAL_ROLES = ['villager', 'werewolf', 'lone_wolf', 'wolf_cub', 'dire_wolf', 'wolfman', 'dark_witch', 'minion'];
+
+// คอมโพเนนต์ย่อยอยู่ระดับโมดูล (identity คงที่) เพื่อไม่ให้ scroll เด้งเวลากดเลือก
+const renderSleep = (msg = "หลับตา... 😴") => (
+  <div className="text-center animate-fade-in" style={{ padding: '3rem 1rem' }}>
+    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌙</div>
+    <h2 style={{ color: 'var(--text-secondary)' }}>{msg}</h2>
+  </div>
+);
+
+const Title = ({ title, desc, color }) => (
+  <div className="text-center">
+    <h2 style={{ color }}>{title}</h2>
+    {desc && <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{desc}</p>}
+  </div>
+);
+
+const PlayerList = ({ players, onSelect, isSelected, isDisabled = () => false, icon = '👁️' }) => (
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem', maxHeight: '250px', overflowY: 'auto' }}>
+    {players.map(p => {
+      const disabled = isDisabled(p);
+      const selected = isSelected(p);
+      return (
+        <div key={p.name} onClick={() => !disabled && onSelect(p)} style={{
+          background: disabled ? 'rgba(255,0,0,0.1)' : selected ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
+          border: selected ? '1px solid white' : '1px solid transparent',
+          padding: '1rem', borderRadius: '8px', cursor: disabled ? 'not-allowed' : 'pointer',
+          textAlign: 'center', opacity: disabled ? 0.5 : 1
+        }}>
+          {selected ? icon : '🤍'} {p.name} {disabled && '(ห้ามเลือก)'}
+        </div>
+      );
+    })}
+  </div>
+);
 
 export default function Night() {
   const { roomId } = useParams();
@@ -32,6 +90,9 @@ export default function Night() {
   const [localText, setLocalText] = useState('');
   const [checkResult, setCheckResult] = useState(null);
   const [myWolfVotes, setMyWolfVotes] = useState([]);
+  const [thugTargets, setThugTargets] = useState([]);
+  const [showIntro, setShowIntro] = useState(false);
+  const [introRound, setIntroRound] = useState(0);
 
   useEffect(() => {
     if (!roomId || !playerName) { navigate('/'); return; }
@@ -45,12 +106,27 @@ export default function Night() {
     return () => unsubscribe();
   }, [roomId, playerName, navigate]);
 
-  // --- HOST ENGINE ---
+  // แสดง banner "คืนที่ X" ตอนเข้าคืนใหม่ (คนทั่วไป ~2.2 วิ, moderator รอกดปุ่มเอง)
+  // NOTE: ห้ามใส่ introRound ใน deps ไม่งั้น effect รันซ้ำแล้ว clear timer ทำให้ banner ค้าง
   useEffect(() => {
-    if (!roomData || roomData.host !== playerName) return;
+    if (roomData?.status === 'night' && roomData?.round && roomData.round !== introRound) {
+      setIntroRound(roomData.round);
+      setShowIntro(true);
+      const amMod = roomData?.players?.[playerName]?.role === 'moderator';
+      if (!amMod) {
+        const t = setTimeout(() => setShowIntro(false), 2200);
+        return () => clearTimeout(t);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomData?.round, roomData?.status, playerName]);
+
+  // --- HOST ENGINE (Werewolf เท่านั้น) ---
+  useEffect(() => {
+    if (!roomData || roomData.host !== playerName || roomData.gameType === 'salem') return;
 
     const currentTurn = roomData.currentTurn || WAKE_ORDER[0];
-    const playersList = Object.values(roomData.players || {});
+    const playersList = Object.values(roomData.players || {}).filter(Boolean);
     const livingPlayers = playersList.filter(p => !p.isDead && p.role !== 'moderator');
     const nightActions = roomData.nightActions || {};
     const gameData = roomData.gameData || {};
@@ -97,7 +173,7 @@ export default function Night() {
           const voters = livingPlayers.filter(p => WOLF_VOTERS.includes(p.role));
           if (wolves.length === 0) shouldWait = false;
           else {
-            if (gameData.wolvesDisabled) {
+            if (gameData.wolvesDisabledForRound === round) {
               shouldWait = false; // Disabled by Infected
             } else if (voters.length === 0) {
               // Only wolf_cub(s) alive — skip vote
@@ -180,54 +256,67 @@ export default function Night() {
 
   if (!roomData || !roomData.currentTurn) return <div className="text-center mt-8">กำลังโหลด...</div>;
 
+  // Salem ใช้หน้า/เอนจินแยก
+  if (roomData.gameType === 'salem') return <SalemNight />;
+
   const currentTurn = roomData.currentTurn;
   const myPlayerInfo = roomData.players[playerName] || {};
   const myRole = myPlayerInfo.role;
   const isDead = myPlayerInfo.isDead;
   const isModerator = myRole === 'moderator';
-  const playersList = Object.values(roomData.players || {});
+  const playersList = Object.values(roomData.players || {}).filter(Boolean);
   const livingPlayers = playersList.filter(p => !p.isDead && p.role !== 'moderator');
   const nightActions = roomData.nightActions || {};
   const gameData = roomData.gameData || {};
   const round = roomData.round || 1;
 
+  // --- คนตาย: banner แดงค้างไว้ (ไม่ถูกปลุก เว้นแต่ถูกชุบชีวิต) ---
+  if (isDead && !isModerator) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem',
+        textAlign: 'center', padding: '2rem',
+        background: 'radial-gradient(circle, rgba(139,0,0,0.88) 0%, rgba(0,0,0,1) 100%)'
+      }}>
+        <div style={{ fontSize: '5.5rem' }}>💀</div>
+        <h1 style={{ color: '#ff3333', fontSize: '2.8rem', textShadow: '0 0 20px rgba(255,0,0,0.6)', margin: 0 }}>คุณตายแล้ว</h1>
+        <p style={{ color: 'white', opacity: 0.85, fontSize: '1.1rem' }}>เป็นวิญญาณเร่ร่อน... ห้ามพูดหรือใบ้คนอื่น 👻</p>
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.9rem' }}>คุณจะไม่ถูกปลุกอีก (เว้นแต่ถูกชุบชีวิต)</p>
+      </div>
+    );
+  }
+
+  // --- BANNER เข้าคืนใหม่ ---
+  if (showIntro) {
+    return (
+      <div className="animate-fade-in" style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem',
+        background: 'radial-gradient(circle, rgba(25,20,60,0.97) 0%, rgba(0,0,0,1) 100%)', padding: '2rem'
+      }}>
+        <div style={{ fontSize: '5.5rem', filter: 'drop-shadow(0 0 25px rgba(138,43,226,0.7))' }}>🌙</div>
+        <h1 style={{ color: '#c8b6ff', fontSize: '3.5rem', letterSpacing: '3px', textShadow: '0 0 25px rgba(138,43,226,0.6)', margin: 0 }}>
+          คืนที่ {round}
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+          {isModerator ? 'พร้อมคุมเกมไหม?' : 'ทุกคนหลับตา... 😴'}
+        </p>
+        {isModerator && (
+          <div style={{ width: '100%', maxWidth: '320px', marginTop: '0.5rem' }}>
+            <Button onClick={() => setShowIntro(false)} size="lg">
+              👑 เข้าแผงควบคุม (เช็คแต่ละ role)
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const confirmAction = async (updates) => {
     await update(ref(db, `rooms/${roomId}`), updates);
     setTarget1(null); setTarget2(null); setCheckResult(null); setLocalText('');
   };
-
-  const renderSleep = (msg = "หลับตา... 😴") => (
-    <div className="text-center animate-fade-in" style={{ padding: '3rem 1rem' }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌙</div>
-      <h2 style={{ color: 'var(--text-secondary)' }}>{msg}</h2>
-    </div>
-  );
-
-  const Title = ({ title, desc, color }) => (
-    <div className="text-center">
-      <h2 style={{ color }}>{title}</h2>
-      {desc && <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{desc}</p>}
-    </div>
-  );
-
-  const PlayerList = ({ players, onSelect, isSelected, isDisabled = () => false, icon = '👁️' }) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem', maxHeight: '250px', overflowY: 'auto' }}>
-      {players.map(p => {
-        const disabled = isDisabled(p);
-        const selected = isSelected(p);
-        return (
-          <div key={p.name} onClick={() => !disabled && onSelect(p)} style={{
-            background: disabled ? 'rgba(255,0,0,0.1)' : selected ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
-            border: selected ? '1px solid white' : '1px solid transparent',
-            padding: '1rem', borderRadius: '8px', cursor: disabled ? 'not-allowed' : 'pointer',
-            textAlign: 'center', opacity: disabled ? 0.5 : 1
-          }}>
-            {selected ? icon : '🤍'} {p.name} {disabled && '(ห้ามเลือก)'}
-          </div>
-        );
-      })}
-    </div>
-  );
 
   // --- MODERATOR VIEW ---
   if (isModerator) {
@@ -235,6 +324,39 @@ export default function Night() {
       const idx = WAKE_ORDER.indexOf(currentTurn);
       if (idx < WAKE_ORDER.length - 1) update(ref(db, `rooms/${roomId}`), { currentTurn: WAKE_ORDER[idx + 1] });
       else update(ref(db, `rooms/${roomId}`), { status: 'morning' });
+    };
+    // เทส: รีเซ็ตกลับคืน 1 (ฟื้นทุกคน บทเดิม ล้าง flag) เพื่อให้บท "คืนแรกเท่านั้น" ถูกถามอีก
+    const resetToNight1 = async () => {
+      if (!window.confirm('รีเซ็ตกลับคืนที่ 1? (คนเดิม บทเดิม ฟื้นทุกคน ล้างการกระทำ) — สำหรับเทส')) return;
+      const updates = {};
+      updates[`rooms/${roomId}/round`] = 1;
+      updates[`rooms/${roomId}/status`] = 'night';
+      updates[`rooms/${roomId}/currentTurn`] = 'werewolf';
+      updates[`rooms/${roomId}/morningResult`] = null;
+      updates[`rooms/${roomId}/winner`] = null;
+      updates[`rooms/${roomId}/nightActions`] = { werewolfVotes: {} };
+      playersList.forEach(p => { updates[`rooms/${roomId}/players/${p.name}/isDead`] = false; });
+      updates[`rooms/${roomId}/gameData/witchHealAvailable`] = true;
+      updates[`rooms/${roomId}/gameData/witchPoisonAvailable`] = true;
+      updates[`rooms/${roomId}/gameData/priestAvailable`] = true;
+      updates[`rooms/${roomId}/gameData/huntressAmmo`] = true;
+      updates[`rooms/${roomId}/gameData/troublemakerAvailable`] = true;
+      updates[`rooms/${roomId}/gameData/wolvesDoubleKillForRound`] = 0;
+      updates[`rooms/${roomId}/gameData/wolvesDisabledForRound`] = 0;
+      updates[`rooms/${roomId}/gameData/twoExecutions`] = false;
+      updates[`rooms/${roomId}/gameData/cultMembers`] = [];
+      updates[`rooms/${roomId}/gameData/vampireBites`] = {};
+      updates[`rooms/${roomId}/gameData/lovers`] = null;
+      updates[`rooms/${roomId}/gameData/doppelgangerTarget`] = null;
+      updates[`rooms/${roomId}/gameData/direWolfCompanion`] = null;
+      updates[`rooms/${roomId}/gameData/thugTargets`] = null;
+      updates[`rooms/${roomId}/gameData/princeRevealed`] = false;
+      updates[`rooms/${roomId}/gameData/priestBuff`] = null;
+      updates[`rooms/${roomId}/gameData/lastProtected`] = null;
+      updates[`rooms/${roomId}/gameData/lastHagTarget`] = null;
+      updates[`rooms/${roomId}/gameData/toughGuyDiesOnRound`] = null;
+      updates[`rooms/${roomId}/gameData/toughGuyName`] = null;
+      await update(ref(db), updates);
     };
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '85vh', overflowY: 'auto' }}>
@@ -244,7 +366,7 @@ export default function Night() {
           <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', fontSize: '0.85rem' }}>
             <p><strong>เป้าหมายหมาป่า:</strong> {nightActions.werewolfTarget || '-'}</p>
             <p><strong>แวมไพร์กัด:</strong> {nightActions.vampireKill || '-'}</p>
-            <p><strong>ชูปากาบรัสฆ่า:</strong> {nightActions.chupacabraKill || '-'}</p>
+            <p><strong>ซูปราคาบราฆ่า:</strong> {nightActions.chupacabraKill || '-'}</p>
             <p><strong>แม่มดพิษ/ชุบ:</strong> {nightActions.witchKill || '-'} / {nightActions.witchHeal ? 'Yes' : 'No'}</p>
             <p><strong>นักบวชพรมน้ำมนต์:</strong> {nightActions.priestMark || '-'}</p>
             <p><strong>ผู้ร่ายเวทใบ้:</strong> {nightActions.mageTarget || '-'}</p>
@@ -252,19 +374,19 @@ export default function Night() {
           </div>
         </div>
         <Button onClick={forceSkip} variant="danger">บังคับข้ามคิว</Button>
+        <Button onClick={resetToNight1} variant="secondary">🔄 รีเซ็ตเป็นคืน 1 (เทส)</Button>
       </div>
     );
   }
 
-  // Active Role Check
-  if (isDead) return renderSleep("คุณตายแล้ว เป็นวิญญาณเร่ร่อน... 👻");
+  // Active Role Check (คนตายถูกจัดการด้วย banner แดงด้านบนแล้ว)
 
   // --- INDIVIDUAL ROLE VIEWS ---
 
   if (currentTurn === 'doppelganger' && myRole === 'doppelganger') {
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="👥 ด็อพเพิลเก็งเงอร์" desc="เลือก 1 คน ถ้าเขาตาย คุณจะได้บทบาทเขาแทน" color="#a2d2ff" />
+        <Title title="👥 ภูตจำแลง" desc="เลือก 1 คน ถ้าเขาตาย คุณจะได้บทบาทเขาแทน" color="#a2d2ff" />
         <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={p=>setTarget1(p.name)} isSelected={p=>p.name===target1} />
         <Button onClick={() => confirmAction({'gameData/doppelgangerTarget': target1, 'nightActions/doppelgangerDone': true})} disabled={!target1}>ยืนยัน</Button>
       </div>
@@ -275,7 +397,7 @@ export default function Night() {
     const masons = playersList.filter(p => p.role === 'mason');
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🤝 กลุ่มภราดรภาพ" desc="นี่คือเพื่อน Mason ของคุณ" color="#bde0fe" />
+        <Title title="🤝 ภราดรแห่งเมสัน" desc="นี่คือเพื่อน Mason ของคุณ" color="#bde0fe" />
         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', textAlign: 'center' }}>
           {masons.map(m => <div key={m.name}>{m.name}</div>)}
         </div>
@@ -288,9 +410,9 @@ export default function Night() {
     const seers = playersList.filter(p => p.role === 'seer');
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="👀 ตาทิพย์" desc="นี่คือผู้หยั่งรู้ประจำหมู่บ้าน" color="#ffd6a5" />
+        <Title title="👀 ตาทิพย์" desc="นี่คือเทพพยากรณ์ประจำหมู่บ้าน" color="#ffd6a5" />
         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', textAlign: 'center' }}>
-          {seers.length > 0 ? seers.map(m => <div key={m.name}>🔮 {m.name}</div>) : "ไม่มีผู้หยั่งรู้ในเกมนี้"}
+          {seers.length > 0 ? seers.map(m => <div key={m.name}>🔮 {m.name}</div>) : "ไม่มีเทพพยากรณ์ในเกมนี้"}
         </div>
         <Button onClick={() => confirmAction({'nightActions/magic_eyesDone': true})}>รับทราบ</Button>
       </div>
@@ -298,15 +420,7 @@ export default function Night() {
   }
 
   if (currentTurn === 'thug' && myRole === 'thug') {
-    const toggleThug = (name) => {
-      if (target1 === name) setTarget1(null);
-      else if (target2 === name) setTarget2(null);
-      else if (!target1) setTarget1(name);
-      else if (!target2) setTarget2(name);
-    };
-    const totalWolves = playersList.filter(p => WOLF_ROLES.includes(p.role)).length;
-    const targetsNeeded = totalWolves || 1;
-    const [thugTargets, setThugTargets] = useState([]);
+    const targetsNeeded = 2; // อันธพาลเลือกเป้าหมาย 2 คนเสมอ (ตามชีต)
     const toggleTarget = (name) => {
       if (thugTargets.includes(name)) setThugTargets(thugTargets.filter(n=>n!==name));
       else if (thugTargets.length < targetsNeeded) setThugTargets([...thugTargets, name]);
@@ -327,7 +441,7 @@ export default function Night() {
     };
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="👼 คิวปิด" desc="เลือกจับคู่รัก 2 คน" color="#ffb3c6" />
+        <Title title="👼 กามเทพ" desc="เลือกจับคู่รัก 2 คน" color="#ffb3c6" />
         <PlayerList players={livingPlayers} onSelect={p=>toggleLover(p.name)} isSelected={p=>target1===p.name||target2===p.name} icon="💖" />
         <Button onClick={() => confirmAction({'gameData/lovers': [target1, target2], 'nightActions/cupidDone': true})} disabled={!target1||!target2}>ยิงศรรัก!</Button>
       </div>
@@ -391,7 +505,7 @@ export default function Night() {
     const cultMembers = gameData.cultMembers || [];
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🕋 ผู้นำลัทธิ" desc="ชวน 1 คนเข้าลัทธิ" color="#4a4e69" />
+        <Title title="🕋 เจ้าลัทธิ" desc="ชวน 1 คนเข้าลัทธิ" color="#4a4e69" />
         <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={p=>setTarget1(p.name)} isSelected={p=>target1===p.name} isDisabled={p=>cultMembers.includes(p.name)} icon="🙏" />
         <Button onClick={() => confirmAction({'gameData/cultMembers': [...cultMembers, target1], 'nightActions/cult_leaderDone': true})} disabled={!target1}>ชวนเข้าลัทธิ</Button>
       </div>
@@ -401,7 +515,7 @@ export default function Night() {
   if (currentTurn === 'chupacabra' && myRole === 'chupacabra') {
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🦇 ชูปากาบรัส" desc="ฆ่า 1 คน (ถ้ามีหมาป่าอยู่ จะฆ่าได้เฉพาะหมาป่าเท่านั้น!)" color="#7209b7" />
+        <Title title="🦇 ซูปราคาบรา" desc="ฆ่า 1 คน (ถ้ามีหมาป่าอยู่ จะฆ่าได้เฉพาะหมาป่าเท่านั้น!)" color="#7209b7" />
         <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={p=>setTarget1(p.name)} isSelected={p=>target1===p.name} icon="🦇" />
         <Button onClick={() => confirmAction({'nightActions/chupacabraKill': target1, 'nightActions/chupacabraDone': true})} disabled={!target1}>ฆ่า!</Button>
       </div>
@@ -424,7 +538,7 @@ export default function Night() {
 
   if (currentTurn === 'werewolf' && WOLF_ROLES.includes(myRole)) {
     const isWolfCub = myRole === 'wolf_cub';
-    if (gameData.wolvesDisabled) {
+    if (gameData.wolvesDisabledForRound === round) {
       return (
         <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <Title title="🐺 แก๊งหมาป่า" desc="คืนนี้พวกคุณติดโรคจาก Infected 🤒 ห้ามฆ่าใคร!" color="red" />
@@ -454,7 +568,7 @@ export default function Night() {
         </div>
       );
     }
-    const maxTargets = gameData.wolvesDoubleKill ? 2 : 1;
+    const maxTargets = gameData.wolvesDoubleKillForRound === round ? 2 : 1;
     const toggleWolfTarget = async (id) => {
       let newV = [...myWolfVotes];
       if (newV.includes(id)) newV = newV.filter(v=>v!==id);
@@ -484,11 +598,11 @@ export default function Night() {
   if (currentTurn === 'dark_witch' && myRole === 'dark_witch') {
     const checkDarkWitch = async (target) => {
       const isSeer = target.role === 'seer' || target.role === 'oracle_apprentice';
-      setCheckResult({ name: target.name, text: isSeer ? 'ใช่ ผู้หยั่งรู้!' : 'ไม่ใช่' });
+      setCheckResult({ name: target.name, text: isSeer ? 'ใช่ เทพพยากรณ์!' : 'ไม่ใช่' });
     };
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🦹‍♀️ แม่หมอมนตร์ดำ" desc="ส่องหาผู้หยั่งรู้ 1 คน" color="#ff6b6b" />
+        <Title title="🦹‍♀️ แม่หมอมนตร์ดำ" desc="ส่องหาเทพพยากรณ์ 1 คน" color="#ff6b6b" />
         {!checkResult ? <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={checkDarkWitch} isSelected={()=>false} />
          : <div className="text-center" style={{ padding: '2rem' }}><h3>{checkResult.name} คือ</h3><div style={{ fontSize: '2rem' }}>{checkResult.text}</div></div>}
         <Button onClick={() => confirmAction({'nightActions/dark_witchDone': true})} disabled={!checkResult}>หลับตา</Button>
@@ -503,7 +617,7 @@ export default function Night() {
     };
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="👁️‍🗨️ ญาณทิพย์" desc="เช็คว่ามีพลังพิเศษหรือไม่" color="#fee440" />
+        <Title title="👁️‍🗨️ ญานทิพย์" desc="เช็คว่ามีพลังพิเศษหรือไม่" color="#fee440" />
         {!checkResult ? <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={checkPsychic} isSelected={()=>false} />
          : <div className="text-center" style={{ padding: '2rem' }}><h3>{checkResult.name} คือ</h3><div style={{ fontSize: '1.5rem' }}>{checkResult.text}</div></div>}
         <Button onClick={() => confirmAction({'nightActions/psychicDone': true})} disabled={!checkResult}>หลับตา</Button>
@@ -518,8 +632,8 @@ export default function Night() {
     if (myRole === 'oracle_apprentice' && isRealSeerAlive) {
       return (
         <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Title title="👁️ ศิษย์เทพพยากรณ์" desc="รอผู้หยั่งรู้ตัวจริงส่อง..." color="#48cae4" />
-          {nightActions.seerCheck && <div className="text-center" style={{ padding: '2rem' }}>ผู้หยั่งรู้ส่อง {nightActions.seerCheck}!</div>}
+          <Title title="👁️ ศิษย์เทพพยากรณ์" desc="รอเทพพยากรณ์ตัวจริงส่อง..." color="#48cae4" />
+          {nightActions.seerCheck && <div className="text-center" style={{ padding: '2rem' }}>เทพพยากรณ์ส่อง {nightActions.seerCheck}!</div>}
         </div>
       );
     }
@@ -540,7 +654,7 @@ export default function Night() {
     };
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🔮 ผู้หยั่งรู้" desc="ส่องดูว่าใครคือฝ่ายดีหรือฝ่ายร้าย" color="#48cae4" />
+        <Title title="🔮 เทพพยากรณ์" desc="ส่องดูว่าใครคือฝ่ายดีหรือฝ่ายร้าย" color="#48cae4" />
         {!checkResult ? <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={checkSeer} isSelected={()=>false} />
          : <div className="text-center" style={{ padding: '2rem' }}><h3>{checkResult.name} คือ</h3><div style={{ fontSize: '2rem' }}>{checkResult.text}</div></div>}
         <Button onClick={() => confirmAction({'nightActions/seerDone': true})} disabled={!checkResult}>หลับตา</Button>
@@ -554,7 +668,7 @@ export default function Night() {
     };
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="📢 ผู้เปิดเผยตัวตน" desc="เลือก 1 คน ถ้าเขาเป็นหมาป่า เขาจะตาย ถ้าไม่ใช่ คุณจะตายเอง!" color="#f4a261" />
+        <Title title="📢 ผู้เผยตัวตน" desc="เลือก 1 คน ถ้าเขาเป็นหมาป่า เขาจะตาย ถ้าไม่ใช่ คุณจะตายเอง!" color="#f4a261" />
         <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={p=>setTarget1(p.name===target1?null:p.name)} isSelected={p=>target1===p.name} icon="📢" />
         <Button onClick={confirmRevealer} variant={target1 ? 'danger' : 'secondary'}>{target1 ? 'เปิดเผยตัวตน!' : 'ไม่ใช้ หลับตา'}</Button>
       </div>
@@ -590,7 +704,7 @@ export default function Night() {
   if (currentTurn === 'troublemaker' && myRole === 'troublemaker') {
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🌪️ ผู้สร้างปัญหา" desc="ทำให้การโหวตตอนเช้า สามารถแขวนคอได้ 2 คน! (ใช้ได้ 1 ครั้ง)" color="#e63946" />
+        <Title title="🌪️ ตัวป่วน" desc="ทำให้การโหวตตอนเช้า สามารถแขวนคอได้ 2 คน! (ใช้ได้ 1 ครั้ง)" color="#e63946" />
         <Button onClick={() => confirmAction({'gameData/twoExecutions': true, 'nightActions/troublemakerDone': true, 'gameData/troublemakerAvailable': false})} variant="danger" style={{ padding: '2rem' }}>กวนเมือง! (โหวตตาย 2 คน)</Button>
         <Button onClick={() => confirmAction({'nightActions/troublemakerDone': true})} variant="secondary">ไม่ใช้ หลับตา</Button>
       </div>

@@ -47,14 +47,15 @@ export default function HunterRevenge() {
   const hunterName = gameData.hunterName;
   const isHunter = hunterName === playerName;
   const isModerator = roomData.players[playerName]?.role === 'moderator';
-  const livingPlayers = Object.values(roomData.players || {}).filter(p => !p.isDead && p.name !== hunterName && p.role !== 'moderator');
+  const livingPlayers = Object.values(roomData.players || {}).filter(Boolean).filter(p => !p.isDead && p.name !== hunterName && p.role !== 'moderator');
 
   const checkWinCondition = (players) => {
     // Beggar Win (if dead)
-    const beggarDead = Object.values(players).some(p => p.role === 'beggar' && p.isDead);
+    const allP = Object.values(players).filter(Boolean);
+    const beggarDead = allP.some(p => p.role === 'beggar' && p.isDead);
     if (beggarDead) return 'beggar';
 
-    const living = Object.values(players).filter(p => !p.isDead && p.role !== 'moderator');
+    const living = allP.filter(p => !p.isDead && p.role !== 'moderator');
     
     // Cult Leader Win
     const cultMembers = gameData.cultMembers || [];
@@ -129,7 +130,7 @@ export default function HunterRevenge() {
       const thugTargets = roomData.gameData?.thugTargets || [];
       if (thugTargets.length >= 1) { // Variable length now
         const allTargetsDead = thugTargets.every(t => updatedPlayers[t]?.isDead);
-        const thugDead = Object.values(updatedPlayers).find(p => p.role === 'thug')?.isDead;
+        const thugDead = Object.values(updatedPlayers).filter(Boolean).find(p => p.role === 'thug')?.isDead;
         if (allTargetsDead && !thugDead) {
           winner = winner + '_and_thug';
         }

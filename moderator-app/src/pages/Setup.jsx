@@ -9,49 +9,49 @@ const werewolfRoles = [
   { id: 'villager', name: 'ชาวบ้าน', emoji: '🧑‍🌾' },
 
   // ฝ่ายสนับสนุนชาวบ้าน
-  { id: 'cupid', name: 'คิวปิด', emoji: '👼' },
+  { id: 'cupid', name: 'กามเทพ', emoji: '👼' },
   { id: 'insomniac', name: 'คนอดนอน', emoji: '🦉' },
   { id: 'mage', name: 'จอมเวท', emoji: '🤐' },
   { id: 'prince', name: 'เจ้าชาย', emoji: '👑' },
-  { id: 'psychic', name: 'ญาณทิพย์', emoji: '👁️‍🗨️' },
-  { id: 'troublemaker', name: 'ผู้สร้างปัญหา', emoji: '🌪️' },
+  { id: 'psychic', name: 'ญานทิพย์', emoji: '👁️‍🗨️' },
+  { id: 'troublemaker', name: 'ตัวป่วน', emoji: '🌪️' },
   { id: 'magic_eyes', name: 'ตาทิพย์', emoji: '👀' },
-  { id: 'seer', name: 'ผู้หยั่งรู้', emoji: '🔮' },
+  { id: 'seer', name: 'เทพพยากรณ์', emoji: '🔮' },
   { id: 'priest', name: 'นักบวช', emoji: '✝️' },
-  { id: 'paranormal_detective', name: 'คนอวดผี', emoji: '👻🔍' },
+  { id: 'paranormal_detective', name: 'นักสืบเรื่องลี้ลับ', emoji: '👻🔍' },
   { id: 'hunter', name: 'นายพราน', emoji: '🏹' },
   { id: 'bodyguard', name: 'บอดี้การ์ด', emoji: '🛡️' },
-  { id: 'revealer', name: 'ผู้เปิดเผยตัวตน', emoji: '📢' },
-  { id: 'pacifist', name: 'ผู้รักสงบ', emoji: '☮️' },
+  { id: 'revealer', name: 'ผู้เผยตัวตน', emoji: '📢' },
+  { id: 'pacifist', name: 'ผู้รักสันติ', emoji: '☮️' },
   { id: 'infected', name: 'ผู้ป่วยติดเชื้อ', emoji: '🤒' },
   { id: 'huntress', name: 'พรานหญิง', emoji: '🧝‍♀️' },
-  { id: 'mason', name: 'กลุ่มภราดรภาพ', emoji: '🤝' },
+  { id: 'mason', name: 'ภราดรแห่งเมสัน', emoji: '🤝' },
   { id: 'hag', name: 'แม่เฒ่า', emoji: '👵' },
   { id: 'witch', name: 'แม่มด', emoji: '🧙‍♀️' },
-  { id: 'half_werewolf', name: 'ลูกครึ่งหมาป่า', emoji: '🐶' },
+  { id: 'half_werewolf', name: 'ลูกครึ่งมนุษย์หมาป่า', emoji: '🐶' },
   { id: 'oracle_apprentice', name: 'ศิษย์เทพพยากรณ์', emoji: '👁️' },
-  { id: 'tough_guy', name: 'หนุ่มบึ้ก', emoji: '💪' },
+  { id: 'tough_guy', name: 'หนุ่มถึก', emoji: '💪' },
   { id: 'thug', name: 'อันธพาล', emoji: '🥷' },
   { id: 'simpleton', name: 'ไอ้ทึ่ม', emoji: '🤪' },
 
   // ฝ่ายหมาป่า
-  { id: 'werewolf', name: 'หมาป่า', emoji: '🐺' },
+  { id: 'werewolf', name: 'มนุษย์หมาป่า', emoji: '🐺' },
   { id: 'dark_witch', name: 'แม่หมอมนตร์ดำ', emoji: '🦹‍♀️' },
   { id: 'wolf_cub', name: 'ลูกหมาป่า', emoji: '🐾' },
   { id: 'minion', name: 'สมุนรับใช้', emoji: '🧟' },
   { id: 'lone_wolf', name: 'หมาป่าเดียวดาย', emoji: '🐺' },
-  { id: 'wolfman', name: 'มนุษย์หมาป่า', emoji: '🐺🧔' },
+  { id: 'wolfman', name: 'หมาป่ามนุษย์', emoji: '🐺🧔' },
   { id: 'dire_wolf', name: 'หมาป่าโลกันตร์', emoji: '🔥' },
 
   // ฝ่ายที่สาม / เป็นกลาง
-  { id: 'cult_leader', name: 'ผู้นำลัทธิ', emoji: '🕋' },
-  { id: 'chupacabra', name: 'ชูปากาบรัส', emoji: '🦇' },
+  { id: 'cult_leader', name: 'เจ้าลัทธิ', emoji: '🕋' },
+  { id: 'chupacabra', name: 'ซูปราคาบรา', emoji: '🦇' },
   { id: 'beggar', name: 'ยาจก', emoji: '🥺' },
 
   // สลับการ์ด (Switcher)
-  { id: 'drunk', name: 'คนเมา', emoji: '🍺' },
-  { id: 'cursed', name: 'ผู้โดนสาป', emoji: '🧟‍♂️' },
-  { id: 'doppelganger', name: 'ด็อพเพิลเก็งเงอร์', emoji: '👥' },
+  { id: 'drunk', name: 'ขี้เมา', emoji: '🍺' },
+  { id: 'cursed', name: 'ผู้ต้องสาป', emoji: '🧟‍♂️' },
+  { id: 'doppelganger', name: 'ภูตจำแลง', emoji: '👥' },
 
   // แวมไพร์
   { id: 'vampire', name: 'แวมไพร์', emoji: '🧛' },
@@ -179,7 +179,7 @@ export default function Setup() {
   // -------------------------
   const myPlayerData = roomData.players[playerName] || {};
   const isModerator = myPlayerData.role === 'moderator';
-  const playersList = Object.values(roomData.players || {});
+  const playersList = Object.values(roomData.players || {}).filter(Boolean);
   const activePlayers = playersList.filter(p => p.role !== 'moderator');
   const readyPlayers = activePlayers.filter(p => p.role !== 'unassigned');
   const isReady = myPlayerData.role !== 'unassigned';
@@ -192,12 +192,23 @@ export default function Setup() {
   };
 
   const startNight = async () => {
+    // === SALEM: ตั้งค่าคืนแบบง่าย (แม่มดฆ่า + สายตรวจป้อง) ===
+    if (gameType === 'salem') {
+      await update(ref(db), {
+        [`rooms/${roomId}/status`]: 'night',
+        [`rooms/${roomId}/round`]: 1,
+        [`rooms/${roomId}/currentTurn`]: 'witch',
+        [`rooms/${roomId}/nightActions`]: { witchVotes: {}, witchTarget: null, constableProtect: null, constableDone: false },
+      });
+      return;
+    }
+
     const updates = {};
     updates[`rooms/${roomId}/status`] = 'night';
     updates[`rooms/${roomId}/round`] = 1;
-    
+
     // Default starting turn
-    updates[`rooms/${roomId}/currentTurn`] = 'doppelganger';
+    updates[`rooms/${roomId}/currentTurn`] = 'werewolf';
     
     // Calculate unassigned roles for Drunk
     const assignedRoles = activePlayers.map(p => p.role);
@@ -252,8 +263,8 @@ export default function Setup() {
     updates[`rooms/${roomId}/gameData/huntressAmmo`] = true;
     updates[`rooms/${roomId}/gameData/troublemakerAvailable`] = true;
     
-    updates[`rooms/${roomId}/gameData/wolvesDoubleKill`] = false;
-    updates[`rooms/${roomId}/gameData/wolvesDisabled`] = false;
+    updates[`rooms/${roomId}/gameData/wolvesDoubleKillForRound`] = 0;
+    updates[`rooms/${roomId}/gameData/wolvesDisabledForRound`] = 0;
     updates[`rooms/${roomId}/gameData/twoExecutions`] = false;
 
     updates[`rooms/${roomId}/gameData/cultMembers`] = [];

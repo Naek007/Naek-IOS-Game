@@ -43,6 +43,26 @@ export default function Morning() {
     if (!roomData || roomData.host !== playerName || calculated) return;
 
     const calculateMorning = async () => {
+     try {
+      // === SALEM: แม่มดฆ่า / สายตรวจป้อง — ถ้าป้องตรงเป้าหมายแม่มด = รอด ===
+      if (roomData.gameType === 'salem') {
+        const a = roomData.nightActions || {};
+        const r = roomData.round || 1;
+        const u = {};
+        const killed = a.witchTarget;
+        const saved = a.constableProtect && a.constableProtect === killed;
+        let dead = [];
+        if (killed && !saved) {
+          dead = [killed];
+          u[`rooms/${roomId}/players/${killed}/isDead`] = true;
+        }
+        u[`rooms/${roomId}/morningResult`] = dead;
+        u[`rooms/${roomId}/morningCalcRound`] = r;
+        await update(ref(db), u);
+        setCalculated(true);
+        return;
+      }
+
       const actions = roomData.nightActions || {};
       const gameData = roomData.gameData || {};
       const round = roomData.round || 1;
@@ -65,7 +85,7 @@ export default function Morning() {
             updates[`rooms/${roomId}/gameData/toughGuyName`] = target;
           } else {
             if (role === 'infected') {
-              updates[`rooms/${roomId}/gameData/wolvesDisabled`] = true;
+              updates[`rooms/${roomId}/gameData/wolvesDisabledForRound`] = round + 1;
             }
             pendingDeaths.push(target);
           }
@@ -86,7 +106,7 @@ export default function Morning() {
           pendingDeaths.push(actions.revealerTarget);
         } else {
           // Revealer dies. Find revealer name
-          const revealerName = Object.values(roomData.players).find(p => p.role === 'revealer')?.name;
+          const revealerName = Object.values(roomData.players).filter(Boolean).find(p => p.role === 'revealer')?.name;
           if (revealerName) pendingDeaths.push(revealerName);
         }
       }
@@ -95,7 +115,7 @@ export default function Morning() {
       if (actions.chupacabraKill) {
         const cRole = roomData.players[actions.chupacabraKill]?.role;
         const isWolf = ['werewolf', 'lone_wolf', 'wolf_cub', 'dire_wolf'].includes(cRole) && cRole !== 'wolfman';
-        const totalWolves = Object.values(roomData.players).filter(p => !p.isDead && ['werewolf', 'lone_wolf', 'wolf_cub', 'dire_wolf', 'wolfman'].includes(p.role)).length;
+        const totalWolves = Object.values(roomData.players).filter(Boolean).filter(p => !p.isDead && ['werewolf', 'lone_wolf', 'wolf_cub', 'dire_wolf', 'wolfman'].includes(p.role)).length;
         
         if (isWolf || totalWolves === 0) {
           pendingDeaths.push(actions.chupacabraKill);
@@ -135,7 +155,7 @@ export default function Morning() {
       // Dire Wolf Chain Reaction
       const direWolfCompanion = gameData.direWolfCompanion;
       if (direWolfCompanion && finalDead.includes(direWolfCompanion)) {
-        const dwName = Object.values(roomData.players).find(p => p.role === 'dire_wolf')?.name;
+        const dwName = Object.values(roomData.players).filter(Boolean).find(p => p.role === 'dire_wolf')?.name;
         if (dwName && !finalDead.includes(dwName)) finalDead.push(dwName);
       }
 
@@ -150,7 +170,7 @@ export default function Morning() {
         // Check Doppelganger
         const dgTarget = gameData.doppelgangerTarget;
         if (dgTarget === name) {
-          const dgName = Object.values(roomData.players).find(p => p.role === 'doppelganger')?.name;
+          const dgName = Object.values(roomData.players).filter(Boolean).find(p => p.role === 'doppelganger')?.name;
           if (dgName && !finalDead.includes(dgName)) {
             pendingRoleChanges[dgName] = role;
           }
@@ -164,6 +184,8 @@ export default function Morning() {
 
       // Save the result so everyone sees it
       updates[`rooms/${roomId}/morningResult`] = finalDead;
+      // ธงบอกว่าคำนวณรอบนี้เสร็จแล้ว (กันเคสไม่มีคนตาย finalDead=[] → Firebase เก็บเป็น null แล้วค้าง)
+      updates[`rooms/${roomId}/morningCalcRound`] = round;
       
       
       
@@ -176,6 +198,10 @@ export default function Morning() {
 
       await update(ref(db), updates);
       setCalculated(true);
+     } catch (err) {
+       alert('คำนวณตอนเช้าไม่สำเร็จ: ' + (err?.message || err));
+       console.error('calculateMorning error:', err);
+     }
     };
 
     calculateMorning();
@@ -184,8 +210,11 @@ export default function Morning() {
   if (!roomData) return <div className="text-center mt-8">กำลังคำนวณผลตอนเช้า...</div>;
 
   const isHost = roomData.host === playerName;
+  const isModerator = roomData.players[playerName]?.role === 'moderator';
+  const round = roomData.round || 1;
+  const calcDone = roomData.morningCalcRound === round;
   const result = roomData.morningResult;
-  const amIDeadNow = result && result.includes(playerName);
+  const amIDeadNow = calcDone && result && result.includes(playerName);
 
   const nextPhase = async () => {
     // Navigate to day phase
@@ -224,9 +253,9 @@ export default function Morning() {
       <h2 style={{ color: 'var(--accent-primary)' }}>เช้าแล้ว...</h2>
       
       <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-        {!result ? (
+        {!calcDone ? (
           <p>กำลังคำนวณผลลัพธ์จากค่ำคืนที่ผ่านมา...</p>
-        ) : result.length === 0 ? (
+        ) : (!result || result.length === 0) ? (
           <div>
             <h3 style={{ color: '#2ecc71', fontSize: '1.5rem' }}>เมื่อคืนผ่านไปอย่างสงบสุข</h3>
             <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>ไม่มีใครเสียชีวิต</p>
@@ -259,7 +288,7 @@ export default function Morning() {
         </div>
       )}
 
-      {isHost && result && (
+      {(isHost || isModerator) && calcDone && (
         <Button size="lg" onClick={nextPhase}>
           เข้าสู่ช่วงโหวตเผาคน
         </Button>

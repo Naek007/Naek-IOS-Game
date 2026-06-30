@@ -40,7 +40,7 @@ export default function EndGame() {
 
   const isHost = roomData.host === playerName;
   const winner = roomData.winner;
-  const playersList = Object.values(roomData.players || {});
+  const playersList = Object.values(roomData.players || {}).filter(Boolean);
 
   const mainWinner = winner ? winner.replace('_and_thug', '') : '';
   const thugWon = winner ? winner.includes('thug') : false;
@@ -73,13 +73,23 @@ export default function EndGame() {
   } else if (mainWinner === 'cult_leader') {
     bgColor = 'rgba(74, 78, 105, 0.2)';
     titleColor = '#4a4e69';
-    titleText = 'ลัทธิครอบงำหมู่บ้าน! (ผู้นำลัทธิชนะ)';
+    titleText = 'ลัทธิครอบงำหมู่บ้าน! (เจ้าลัทธิชนะ)';
     emoji = '🕋';
   } else if (mainWinner === 'chupacabra') {
     bgColor = 'rgba(114, 9, 183, 0.2)';
     titleColor = '#7209b7';
-    titleText = 'ชูปากาบรัสเหลือรอดเป็นคนสุดท้าย!';
+    titleText = 'ซูปราคาบราเหลือรอดเป็นคนสุดท้าย!';
     emoji = '🦇';
+  } else if (mainWinner === 'salem_witch') {
+    bgColor = 'rgba(139, 0, 0, 0.2)';
+    titleColor = '#ff3333';
+    titleText = 'ฝ่ายแม่มดชนะ! 🧙‍♀️';
+    emoji = '🧙‍♀️';
+  } else if (mainWinner === 'salem_town') {
+    bgColor = 'rgba(46, 204, 113, 0.2)';
+    titleColor = '#2ecc71';
+    titleText = 'ฝ่ายชาวเมืองชนะ! 🏠';
+    emoji = '🏠';
   }
 
   const playAgain = async () => {

@@ -91,8 +91,8 @@ export default function Home() {
   return (
     <div className="glass-panel" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div className="text-center">
-        <h1 style={{ color: 'var(--accent-primary)' }}>AUTO MOD</h1>
-        <p>The ultimate board game moderator</p>
+        <h1 style={{ color: 'var(--accent-primary)', letterSpacing: '2px' }}>NIGHTFALL</h1>
+        <p style={{ letterSpacing: '1px', opacity: 0.85 }}>เมื่อราตรีมาเยือน เกมจึงเริ่มต้น</p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
