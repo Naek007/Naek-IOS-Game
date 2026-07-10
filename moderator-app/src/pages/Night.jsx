@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
 import SalemNight from './SalemNight';
+import { playClip, isNarrator } from '../audio';
 
 // เรียงตามคอลัมน์ชีต 1-NIGHTS (หมาป่า → ... → เจ้าลัทธิ)
 // บทที่ชีตไม่มีคอลัมน์ (ดูข้อมูลเฉยๆ) แทรกไว้ตามตำแหน่งที่เหมาะสม
@@ -93,6 +94,7 @@ export default function Night() {
   const [thugTargets, setThugTargets] = useState([]);
   const [showIntro, setShowIntro] = useState(false);
   const [introRound, setIntroRound] = useState(0);
+  const spokenTurnRef = useRef(null);
 
   useEffect(() => {
     if (!roomId || !playerName) { navigate('/'); return; }
@@ -112,6 +114,8 @@ export default function Night() {
     if (roomData?.status === 'night' && roomData?.round && roomData.round !== introRound) {
       setIntroRound(roomData.round);
       setShowIntro(true);
+      spokenTurnRef.current = null; // รีเซ็ตให้พากย์ role คืนใหม่ได้
+      if (isNarrator(roomData, playerName)) playClip('wf_night'); // เสียงประกาศเข้าคืน
       const amMod = roomData?.players?.[playerName]?.role === 'moderator';
       if (!amMod) {
         const t = setTimeout(() => setShowIntro(false), 2200);
@@ -120,6 +124,18 @@ export default function Night() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomData?.round, roomData?.status, playerName]);
+
+  // เสียงพากย์ตอนเปลี่ยนคิว role (เล่นบนเครื่อง narrator, หลังปิด banner แล้ว)
+  useEffect(() => {
+    if (!roomData || roomData.status !== 'night' || showIntro) return;
+    if (!isNarrator(roomData, playerName)) return;
+    const turn = roomData.currentTurn;
+    if (turn && turn !== spokenTurnRef.current) {
+      spokenTurnRef.current = turn;
+      playClip('wf_' + turn); // เล่น wf_<role>.mp3 ถ้ามี (ไม่มีก็ข้าม)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomData?.currentTurn, roomData?.status, showIntro, playerName]);
 
   // --- HOST ENGINE (Werewolf เท่านั้น) ---
   useEffect(() => {

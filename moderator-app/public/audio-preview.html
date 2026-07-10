@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nightfall — ฟังเสียงพากย์</title>
+<style>
+  body { font-family: system-ui, 'Segoe UI', sans-serif; background:#0f0f13; color:#fff; margin:0; padding:1.5rem; }
+  h1 { color:#8a2be2; }
+  h2 { margin-top:2rem; padding-bottom:.4rem; border-bottom:1px solid #333; }
+  .salem h2, .salem h1 { color:#e5383b; }
+  .row { display:flex; align-items:center; gap:1rem; padding:.6rem 0; border-bottom:1px solid #1e1e26; flex-wrap:wrap; }
+  .name { font-family:monospace; color:#a0a0ab; min-width:230px; }
+  .txt { flex:1; min-width:220px; color:#ddd; font-size:.92rem; }
+  audio { height:34px; }
+  .miss { color:#ff6b6b; font-size:.8rem; }
+  .hint { color:#888; font-size:.85rem; margin-top:.3rem; }
+</style>
+</head>
+<body>
+  <h1>🌙 Nightfall — ฟังเสียงพากย์</h1>
+  <p class="hint">กดปุ่ม ▶ ฟังทีละไฟล์ ถ้าไฟล์ไหนขึ้น "หาไฟล์ไม่เจอ" แปลว่ายังไม่มี mp3 นั้น</p>
+  <div id="app"></div>
+<script>
+const CLIPS = {
+  "🐺 Werewolf — เฟส": [
+    ["wf_night","ค่ำคืนปกคลุมหมู่บ้าน... ทุกคนหลับตาลง"],
+    ["wf_morning","รุ่งอรุณสาดแสง... มาดูกันว่าใครต้องจากไป"],
+    ["wf_day","ถึงเวลาตัดสิน... ใครกันคือหมาป่า"],
+  ],
+  "🐺 Werewolf — บทบาท": [
+    ["wf_werewolf","หมาป่าลืมตา เลือกเหยื่อ"],
+    ["wf_seer","เทพพยากรณ์ ส่องดี/ร้าย"],
+    ["wf_witch","แม่มด ชุบ/วางยาพิษ"],
+    ["wf_bodyguard","บอดี้การ์ด คุ้มครอง"],
+    ["wf_priest","นักบวช พรมน้ำมนต์"],
+    ["wf_cupid","กามเทพ จับคู่รัก"],
+    ["wf_dark_witch","แม่หมอมนตร์ดำ ส่องหาเทพพยากรณ์"],
+    ["wf_minion","สมุนรับใช้ จดจำนายหมาป่า"],
+    ["wf_dire_wolf","หมาป่าโลกันตร์ เลือกสหาย"],
+    ["wf_thug","อันธพาล เลือก 2 เป้าหมาย"],
+    ["wf_chupacabra","ซูปราคาบรา เลือกเหยื่อ"],
+    ["wf_doppelganger","ภูตจำแลง เลือกเป้าหมาย"],
+    ["wf_mason","ภราดรเมสัน จดจำพวกพ้อง"],
+    ["wf_magic_eyes","ตาทิพย์ รู้ว่าใครคือเทพพยากรณ์"],
+    ["wf_vampire","แวมไพร์ กัดเหยื่อ"],
+    ["wf_mage","จอมเวท สาปให้เป็นใบ้"],
+    ["wf_troublemaker","ตัวป่วน แขวนคอ 2 คน"],
+    ["wf_revealer","ผู้เผยตัวตน ชี้หมาป่า"],
+    ["wf_huntress","พรานหญิง ยิงธนู"],
+    ["wf_hag","แม่เฒ่า ขับไล่"],
+    ["wf_psychic","ญานทิพย์ ส่องพลังพิเศษ"],
+    ["wf_paranormal_detective","นักสืบลี้ลับ สืบหาหมาป่า"],
+    ["wf_cult_leader","เจ้าลัทธิ ชวนเข้าลัทธิ"],
+    ["wf_drunk","ขี้เมา รู้บทจริง"],
+    ["wf_insomniac","คนอดนอน เช็คคนข้างๆ"],
+  ],
+  "🐺 Werewolf — พิเศษ / จบเกม": [
+    ["wf_hunter_revenge","นายพรานแก้แค้น"],
+    ["wf_win_werewolf","ฝ่ายหมาป่าชนะ"],
+    ["wf_win_villager","ฝ่ายชาวบ้านชนะ"],
+  ],
+  "🧙‍♀️ Salem": [
+    ["sl_night","ค่ำคืนแห่งเซเลม หลับตาลง"],
+    ["sl_witch","แม่มด เลือกสังหาร"],
+    ["sl_constable","สายตรวจ ปกป้อง"],
+    ["sl_morning","รุ่งเช้า ใครรอด ใครจากไป"],
+    ["sl_win_witch","ฝ่ายแม่มดชนะ"],
+    ["sl_win_town","ฝ่ายชาวเมืองชนะ"],
+  ],
+};
+const app = document.getElementById('app');
+for (const [group, items] of Object.entries(CLIPS)) {
+  const sec = document.createElement('div');
+  if (group.includes('Salem')) sec.className = 'salem';
+  sec.innerHTML = '<h2>'+group+'</h2>';
+  for (const [file, txt] of items) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML =
+      '<span class="name">'+file+'.mp3</span>'+
+      '<span class="txt">'+txt+'</span>';
+    const a = document.createElement('audio');
+    a.controls = true; a.preload = 'none';
+    a.src = 'audio/'+file+'.mp3';
+    a.onerror = () => { const s=document.createElement('span'); s.className='miss'; s.textContent='⚠️ หาไฟล์ไม่เจอ'; row.appendChild(s); };
+    row.appendChild(a);
+    sec.appendChild(row);
+  }
+  app.appendChild(sec);
+}
+</script>
+</body>
+</html>

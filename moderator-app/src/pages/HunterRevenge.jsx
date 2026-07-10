@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
+import { playClip, isNarrator } from '../audio';
 
 export default function HunterRevenge() {
   const { roomId } = useParams();
@@ -12,6 +13,14 @@ export default function HunterRevenge() {
 
   const [roomData, setRoomData] = useState(null);
   const [target, setTarget] = useState(null);
+  const spokeRef = useRef(false);
+
+  // เสียงพากย์ "นายพรานแก้แค้น" (ครั้งเดียว บนเครื่อง narrator)
+  useEffect(() => {
+    if (!roomData || spokeRef.current) return;
+    spokeRef.current = true;
+    if (isNarrator(roomData, playerName)) playClip('wf_hunter_revenge');
+  }, [roomData, playerName]);
 
   useEffect(() => {
     if (!roomId || !playerName) {

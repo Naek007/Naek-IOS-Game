@@ -111,7 +111,7 @@ export default function Setup() {
   if (setupPhase === 'deck') {
     if (!isHost) {
       return (
-        <div className="glass-panel" style={{ margin: '2rem 1rem', textAlign: 'center', padding: '3rem 1rem' }}>
+        <div className={`glass-panel${gameType === 'salem' ? ' theme-salem' : ''}`} style={{ margin: '2rem 1rem', textAlign: 'center', padding: '3rem 1rem' }}>
           <h2>รอหัวหน้าห้องจัดกองไพ่...</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Host กำลังเลือกบทบาทที่จะเล่นในตานี้</p>
         </div>
@@ -138,7 +138,7 @@ export default function Setup() {
     };
 
     return (
-      <div className="glass-panel animate-fade-in" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className={`glass-panel animate-fade-in${gameType === 'salem' ? ' theme-salem' : ''}`} style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="text-center mb-2">
           <h2 style={{ color: 'var(--accent-primary)' }}>จัดกองไพ่</h2>
           <p style={{ color: 'var(--text-secondary)' }}>เลือกบทบาทที่จะเล่นในตานี้</p>
@@ -276,7 +276,7 @@ export default function Setup() {
   };
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className={`glass-panel animate-fade-in${gameType === 'salem' ? ' theme-salem' : ''}`} style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="text-center">
         <h2 style={{ color: 'var(--accent-primary)', textTransform: 'uppercase' }}>เลือกบทบาทของคุณ</h2>
         <p style={{ color: 'var(--text-secondary)' }}>คุณจั่วได้การ์ดอะไรบนโต๊ะ?</p>

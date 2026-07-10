@@ -21,9 +21,9 @@ export default function Button({
 
   const variants = {
     primary: {
-      background: 'linear-gradient(135deg, #8a2be2, #6a1b9a)',
+      background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
       color: '#fff',
-      boxShadow: '0 4px 15px rgba(138, 43, 226, 0.4)',
+      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.35)',
     },
     secondary: {
       background: 'rgba(255, 255, 255, 0.1)',

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
+import { playClip, isNarrator } from '../audio';
 
 export default function Day() {
   const { roomId } = useParams();
@@ -12,6 +13,14 @@ export default function Day() {
 
   const [roomData, setRoomData] = useState(null);
   const [selectedTarget, setSelectedTarget] = useState(null);
+  const spokeRef = useRef(false);
+
+  // เสียงพากย์ "ช่วงตัดสิน" เล่นครั้งเดียวบนเครื่อง narrator
+  useEffect(() => {
+    if (!roomData || spokeRef.current) return;
+    spokeRef.current = true;
+    if (isNarrator(roomData, playerName)) playClip(roomData.gameType === 'salem' ? 'sl_day' : 'wf_day');
+  }, [roomData, playerName]);
 
   useEffect(() => {
     if (!roomId || !playerName) {
@@ -255,8 +264,11 @@ export default function Day() {
   };
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'center' }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚖️</div>
+    <div className={`glass-panel animate-fade-in${roomData.gameType === 'salem' ? ' theme-salem' : ''}`} style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'center' }}>
+      <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>⚖️</div>
+      <div style={{ alignSelf: 'center', background: 'var(--accent-primary)', color: '#fff', padding: '0.2rem 0.9rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '1px' }}>
+        {roomData.gameType === 'salem' ? '🧙‍♀️ SALEM 1692' : '🐺 WEREWOLF'}
+      </div>
       <h2 style={{ color: 'var(--accent-primary)' }}>ช่วงเวลาตัดสิน</h2>
 
       {gameData.princeRevealed && (
@@ -351,7 +363,7 @@ export default function Day() {
       ) : !isHost ? (
         <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
           <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
-            กำลังปรึกษาและถกเถียงกันว่าใครคือหมาป่า...
+            กำลังปรึกษาและถกเถียงกันว่าใครคือ{roomData.gameType === 'salem' ? 'แม่มด' : 'หมาป่า'}...
           </p>
           <p style={{ marginTop: '1rem', opacity: 0.5 }}>รอให้ Moderator หรือ Host สรุปผลการโหวตประหาร</p>
         </div>

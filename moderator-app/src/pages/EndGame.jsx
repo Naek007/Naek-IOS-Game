@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ref, onValue, update, remove } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
+import { playClip, isNarrator } from '../audio';
+
+const WIN_CLIPS = {
+  werewolf: 'wf_win_werewolf',
+  lone_wolf: 'wf_win_werewolf',
+  villager: 'wf_win_villager',
+  salem_witch: 'sl_win_witch',
+  salem_town: 'sl_win_town',
+};
 
 export default function EndGame() {
   const { roomId } = useParams();
@@ -11,6 +20,16 @@ export default function EndGame() {
   const navigate = useNavigate();
 
   const [roomData, setRoomData] = useState(null);
+  const spokeRef = useRef(false);
+
+  // เสียงพากย์ประกาศผู้ชนะ (ครั้งเดียว บนเครื่อง narrator)
+  useEffect(() => {
+    if (!roomData || spokeRef.current || !roomData.winner) return;
+    spokeRef.current = true;
+    if (!isNarrator(roomData, playerName)) return;
+    const mw = roomData.winner.replace('_and_thug', '');
+    if (WIN_CLIPS[mw]) playClip(WIN_CLIPS[mw]);
+  }, [roomData, playerName]);
 
   useEffect(() => {
     if (!roomId || !playerName) {
@@ -119,7 +138,7 @@ export default function EndGame() {
   };
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'center', background: bgColor }}>
+    <div className={`glass-panel animate-fade-in${roomData.gameType === 'salem' ? ' theme-salem' : ''}`} style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'center', background: bgColor }}>
       <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>{emoji}</div>
       <h1 style={{ color: titleColor, fontSize: '3rem', textShadow: '2px 2px 10px rgba(0,0,0,0.5)' }}>
         {titleText}

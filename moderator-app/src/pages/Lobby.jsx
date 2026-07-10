@@ -75,7 +75,7 @@ export default function Lobby() {
   const gameName = roomData.gameType === 'werewolf' ? '🐺 Werewolf' : '🧙‍♀️ Salem 1692';
 
   return (
-    <div className="glass-panel" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className={`glass-panel${roomData.gameType === 'salem' ? ' theme-salem' : ''}`} style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="text-center">
         <div style={{ 
           display: 'inline-block', 

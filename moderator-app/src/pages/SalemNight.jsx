@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
+import { playClip, isNarrator } from '../audio';
 
 // ลำดับการลืมตาของ Salem: แม่มดฆ่า -> สายตรวจปกป้อง
 const SALEM_WAKE = ['witch', 'constable'];
@@ -31,6 +32,7 @@ export default function SalemNight() {
   const [target, setTarget] = useState(null);
   const [showIntro, setShowIntro] = useState(false);
   const [introRound, setIntroRound] = useState(0);
+  const spokenTurnRef = useRef(null);
 
   // subscribe
   useEffect(() => {
@@ -50,6 +52,8 @@ export default function SalemNight() {
     if (roomData?.status === 'night' && roomData?.round && roomData.round !== introRound) {
       setIntroRound(roomData.round);
       setShowIntro(true);
+      spokenTurnRef.current = null;
+      if (isNarrator(roomData, playerName)) playClip('sl_night');
       const amMod = roomData?.players?.[playerName]?.role === 'moderator';
       if (!amMod) {
         const t = setTimeout(() => setShowIntro(false), 2200);
@@ -58,6 +62,18 @@ export default function SalemNight() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomData?.round, roomData?.status, playerName]);
+
+  // เสียงพากย์ตอนเปลี่ยนคิว role (narrator, หลังปิด banner)
+  useEffect(() => {
+    if (!roomData || roomData.status !== 'night' || showIntro) return;
+    if (!isNarrator(roomData, playerName)) return;
+    const turn = roomData.currentTurn;
+    if (turn && turn !== spokenTurnRef.current) {
+      spokenTurnRef.current = turn;
+      playClip('sl_' + turn); // เล่น sl_<role>.mp3 ถ้ามี (ไม่มีก็ข้าม)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomData?.currentTurn, roomData?.status, showIntro, playerName]);
 
   // HOST ENGINE (Salem)
   useEffect(() => {
@@ -170,7 +186,7 @@ export default function SalemNight() {
       await update(ref(db), updates);
     };
     return (
-      <div className="glass-panel animate-fade-in" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="glass-panel animate-fade-in theme-salem" style={{ margin: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <h2 className="text-center" style={{ color: '#ff6b6b' }}>👑 แผงควบคุม Moderator (Salem)</h2>
         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
           <p>สถานะ: <strong>กำลังเป็นคิวของ {currentTurn === 'witch' ? 'แม่มด 🧙‍♀️' : 'สายตรวจ 🔨'}</strong></p>
@@ -195,7 +211,7 @@ export default function SalemNight() {
       await update(ref(db, `rooms/${roomId}/nightActions/witchVotes`), { [playerName]: newName });
     };
     return (
-      <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="glass-panel animate-fade-in theme-salem" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <Title title="🧙‍♀️ แม่มด" desc={witches.length > 1 ? `เลือกคนที่จะฆ่า (แม่มด ${witches.length} คนต้องเลือกตรงกัน)` : 'เลือกคนที่จะฆ่าคืนนี้'} color="#ff6b6b" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem', maxHeight: '320px', overflowY: 'auto' }}>
           {targets.map(p => {
@@ -221,7 +237,7 @@ export default function SalemNight() {
       setTarget(null);
     };
     return (
-      <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="glass-panel animate-fade-in theme-salem" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <Title title="🔨 สายตรวจ" desc="เลือกคนที่จะปกป้อง 1 คน (ถ้าตรงกับเป้าหมายแม่มด คนนั้นจะรอด)" color="#4cc9f0" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem', maxHeight: '320px', overflowY: 'auto' }}>
           {livingPlayers.map(p => {

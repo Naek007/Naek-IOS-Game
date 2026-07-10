@@ -5,12 +5,21 @@
   --bg-card: #1c1c24;
   --text-primary: #ffffff;
   --text-secondary: #a0a0ab;
-  --accent-primary: #8a2be2; /* Deep purple */
+  --accent-primary: #8a2be2; /* Deep purple (Werewolf) */
+  --accent-secondary: #6a1b9a; /* gradient partner */
   --accent-danger: #ff3b30;
   --accent-success: #34c759;
-  
+
   --glass-bg: rgba(28, 28, 36, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* ธีม Salem: โทนแดงเลือดหมู/แม่มด — override ตัวแปรสีทั้ง subtree */
+.theme-salem {
+  --accent-primary: #e5383b;
+  --accent-secondary: #a4161a;
+  --glass-bg: rgba(40, 18, 20, 0.72);
+  --glass-border: rgba(229, 56, 59, 0.28);
 }
 
 * {
