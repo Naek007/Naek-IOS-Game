@@ -758,11 +758,16 @@ export default function Night() {
         </div>
         {gameData.witchPoisonAvailable && (
           <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-            <p>ใช้ยาพิษใครไหม?</p>
+            <p>จะวางยาพิษใครไหม? <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>(ไม่ใช้ก็ได้ กดยืนยันด้านล่างเลย)</span></p>
             <PlayerList players={livingPlayers.filter(p=>p.name!==playerName)} onSelect={p=>setTarget1(p.name===target1?null:p.name)} isSelected={p=>target1===p.name} icon="☠️" />
+            {target1 && <Button onClick={()=>setTarget1(null)} variant="secondary" style={{ marginTop: '0.5rem' }}>ยกเลิกยาพิษ</Button>}
           </div>
         )}
-        <Button onClick={() => confirmAction({'nightActions/witchDone': true, 'nightActions/witchHeal': localHeal, 'nightActions/witchKill': target1, ...(localHeal && {'gameData/witchHealAvailable': false}), ...(target1 && {'gameData/witchPoisonAvailable': false})})}>เสร็จสิ้น</Button>
+        <Button onClick={() => confirmAction({'nightActions/witchDone': true, 'nightActions/witchHeal': localHeal, 'nightActions/witchKill': target1, ...(localHeal && {'gameData/witchHealAvailable': false}), ...(target1 && {'gameData/witchPoisonAvailable': false})})}>
+          {target1
+            ? `☠️ วางยาพิษ ${target1}${localHeal ? ' + ชุบชีวิต' : ''}`
+            : (localHeal ? '💚 ยืนยัน (ชุบชีวิตอย่างเดียว)' : '🌙 ไม่ใช้ยาคืนนี้ (ข้าม)')}
+        </Button>
       </div>
     );
   }

@@ -235,7 +235,7 @@ export default function Morning() {
   // -------------------------
   // SPECIAL DEATH SCREEN FOR VICTIMS
   // -------------------------
-  if (amIDeadNow) {
+  if (amIDeadNow && !isHost) {
     return (
       <div className="animate-fade-in" style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'radial-gradient(circle, rgba(139,0,0,0.8) 0%, rgba(0,0,0,1) 100%)', padding: '2rem', textAlign: 'center' }}>
         <div style={{ fontSize: '6rem', marginBottom: '1rem' }}>🩸</div>
