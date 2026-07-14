@@ -380,7 +380,7 @@ export default function Night() {
         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
           <p>สถานะ: <strong>กำลังเป็นคิวของ {currentTurn}</strong></p>
           <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', fontSize: '0.85rem' }}>
-            <p><strong>เป้าหมายหมาป่า:</strong> {nightActions.werewolfTarget || '-'}</p>
+            <p><strong>เป้าหมายหมาป่า:</strong> {nightActions.werewolfTarget === 'SKIP_NIGHT' ? 'ข้าม (ไม่ฆ่า)' : nightActions.werewolfTarget === 'SKIPPED_DISEASED' ? 'ติดโรค (ฆ่าไม่ได้)' : (nightActions.werewolfTarget || '-')}</p>
             <p><strong>แวมไพร์กัด:</strong> {nightActions.vampireKill || '-'}</p>
             <p><strong>ซูปราคาบราฆ่า:</strong> {nightActions.chupacabraKill || '-'}</p>
             <p><strong>แม่มดพิษ/ชุบ:</strong> {nightActions.witchKill || '-'} / {nightActions.witchHeal ? 'Yes' : 'No'}</p>
@@ -571,7 +571,7 @@ export default function Night() {
             <p style={{color:'var(--text-secondary)',textAlign:'center',marginBottom:'0.5rem'}}>คะแนนโหวตจากฝูง:</p>
             <div style={{display:'flex',flexDirection:'column',gap:'0.5rem'}}>
               {livingPlayers.filter(p=>!WOLF_ROLES.includes(p.role)).map(p => {
-                const votes = Object.entries(nightActions.werewolfVotes || {}).filter(([k,v]) => v.includes(p.name)).map(([k])=>k);
+                const votes = Object.entries(nightActions.werewolfVotes || {}).filter(([k,v]) => v !== 'SKIP_NIGHT' && String(v).split(',').includes(p.name)).map(([k])=>k);
                 return (
                   <div key={p.name} style={{background:'rgba(255,255,255,0.05)',padding:'0.75rem',borderRadius:'8px',display:'flex',justifyContent:'space-between'}}>
                     <span>{p.name}</span>
@@ -592,21 +592,29 @@ export default function Night() {
       setMyWolfVotes(newV);
       await update(ref(db, `rooms/${roomId}/nightActions/werewolfVotes`), { [playerName]: newV.sort().join(',') });
     };
+    const voteSkip = async () => {
+      setMyWolfVotes([]);
+      await update(ref(db, `rooms/${roomId}/nightActions/werewolfVotes`), { [playerName]: 'SKIP_NIGHT' });
+    };
+    const iSkipped = (nightActions.werewolfVotes || {})[playerName] === 'SKIP_NIGHT';
     return (
       <div className="glass-panel animate-fade-in" style={{ margin: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Title title="🐺 แก๊งหมาป่า" desc={`โหวตฆ่า ${maxTargets} คน (ต้องโหวตตรงกันทุกคน)`} color="red" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
+        <Title title="🐺 แก๊งหมาป่า" desc={`เลือกเหยื่อ ${maxTargets} คน หรือกด "ข้าม" ก็ได้ (ทุกตัวต้องเลือกตรงกัน)`} color="red" />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem', maxHeight: '280px', overflowY: 'auto' }}>
           {livingPlayers.filter(p=>!WOLF_ROLES.includes(p.role)).map(p => {
-            const voters = Object.entries(nightActions.werewolfVotes || {}).filter(([k,v]) => v.includes(p.name)).map(([k])=>k);
+            const voters = Object.entries(nightActions.werewolfVotes || {}).filter(([k,v]) => v !== 'SKIP_NIGHT' && String(v).split(',').includes(p.name)).map(([k])=>k);
             const isMyVote = myWolfVotes.includes(p.name);
             return (
-              <div key={p.name} onClick={()=>toggleWolfTarget(p.name)} style={{ background: isMyVote ? 'rgba(255,0,0,0.3)' : 'rgba(255,255,255,0.05)', border: isMyVote ? '1px solid red' : '1px solid transparent', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between' }}>
+              <div key={p.name} onClick={()=>toggleWolfTarget(p.name)} style={{ background: isMyVote ? 'rgba(255,0,0,0.3)' : 'rgba(255,255,255,0.05)', border: isMyVote ? '1px solid red' : '1px solid transparent', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
                 <span>{p.name}</span>
                 <div style={{ display: 'flex', gap: '0.25rem' }}>{voters.map(v => <span key={v}>🐺</span>)}</div>
               </div>
             );
           })}
         </div>
+        <Button onClick={voteSkip} variant="secondary" style={iSkipped ? { border: '2px solid #ffa500', color: '#ffd27a', fontWeight: 700 } : undefined}>
+          {iSkipped ? '🌙 เลือกข้ามคืนนี้แล้ว' : '🌙 ข้ามคืนนี้ (ไม่ฆ่าใคร)'}
+        </Button>
       </div>
     );
   }

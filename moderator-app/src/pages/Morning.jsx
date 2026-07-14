@@ -81,7 +81,7 @@ export default function Morning() {
       let updates = {};
 
       // 1. Wolves
-      if (actions.werewolfTarget && actions.werewolfTarget !== 'SKIPPED_DISEASED') {
+      if (actions.werewolfTarget && actions.werewolfTarget !== 'SKIPPED_DISEASED' && actions.werewolfTarget !== 'SKIP_NIGHT') {
         actions.werewolfTarget.split(',').forEach(target => {
           if (!target) return;
           if (actions.bodyguardTarget === target || actions.witchHeal) return;

@@ -180,12 +180,10 @@ export default function EndGame() {
 
       {isHost && (
         <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <Button onClick={playAgain} size="lg" style={{ background: 'var(--accent-primary)' }}>
-            🔄 เล่นเกมใหม่อีกรอบ (คนเดิม)
-          </Button>
-          <Button onClick={closeRoom} variant="danger" size="md">
+          <Button onClick={closeRoom} variant="danger" size="lg">
             ❌ ปิดห้อง
           </Button>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>อยากเล่นใหม่ ให้ปิดห้องแล้วสร้างห้องใหม่ครับ</p>
         </div>
       )}
       

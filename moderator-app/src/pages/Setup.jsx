@@ -307,8 +307,8 @@ export default function Setup() {
               <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{r.name}</div>
             </div>
           ))}
-          <Button onClick={confirmRole} size="lg" disabled={!selectedRole} style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
-            ยืนยันบทบาท
+          <Button onClick={confirmRole} size="lg" disabled={!selectedRole} style={{ gridColumn: '1 / -1', marginTop: '1rem', background: 'linear-gradient(135deg, #0a84ff, #0060df)', boxShadow: '0 8px 26px rgba(10,132,255,0.55)', fontSize: '1.4rem', padding: '1.5rem', fontWeight: 800 }}>
+            ✅ ยืนยันบทบาท
           </Button>
         </div>
       ) : (
@@ -321,8 +321,8 @@ export default function Setup() {
 
       {isHost && (
         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)' }}>
-          <Button onClick={startNight} variant="danger" size="lg" disabled={readyPlayers.length < activePlayers.length}>
-            {readyPlayers.length < activePlayers.length ? 'รอทุกคนพร้อม...' : 'เข้าสู่ค่ำคืนแรก 🌙'}
+          <Button onClick={startNight} size="lg" disabled={readyPlayers.length < activePlayers.length} style={{ fontSize: '1.4rem', padding: '1.5rem', fontWeight: 800, boxShadow: '0 8px 28px rgba(0,0,0,0.45)' }}>
+            {readyPlayers.length < activePlayers.length ? 'รอทุกคนพร้อม...' : '🌙 เริ่มค่ำคืนแรก!'}
           </Button>
         </div>
       )}

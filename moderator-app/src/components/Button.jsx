@@ -1,11 +1,12 @@
 import React from 'react';
 
-export default function Button({ 
-  children, 
-  variant = 'primary', 
-  size = 'md', 
-  className = '', 
-  ...props 
+export default function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  style,
+  ...props
 }) {
   const baseStyle = {
     borderRadius: '12px',
@@ -47,6 +48,7 @@ export default function Button({
     ...baseStyle,
     ...variants[variant],
     ...sizes[size],
+    ...style, // merge สไตล์ที่ส่งเข้ามา (ไม่ทับสไตล์หลัก)
   };
 
   return (
