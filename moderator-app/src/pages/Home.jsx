@@ -4,6 +4,9 @@ import { ref, set, get, child } from 'firebase/database';
 import { db } from '../firebase';
 import Button from '../components/Button';
 
+// รหัสสร้างห้องเริ่มต้น (เปลี่ยนได้ที่ Firebase: config/hostPassword)
+const HOST_CODE_FALLBACK = 'nanasuaymak007';
+
 export default function Home() {
   const [joinCode, setJoinCode] = useState('');
   const [playerName, setPlayerName] = useState('');
@@ -11,6 +14,10 @@ export default function Home() {
   const [gameType, setGameType] = useState('werewolf');
   const [maxPlayers, setMaxPlayers] = useState(5);
   const [isModeratorOnly, setIsModeratorOnly] = useState(false);
+  const [hostPassword, setHostPassword] = useState('');
+  const [unlocked, setUnlocked] = useState(() => {
+    try { return localStorage.getItem('nf_host_unlocked') === '1'; } catch { return false; }
+  });
   const navigate = useNavigate();
 
   const createRoom = async () => {
@@ -24,6 +31,23 @@ export default function Home() {
     if (!safeName) {
       alert("กรุณาใส่ชื่อที่ไม่มีอักขระพิเศษ");
       return;
+    }
+
+    // ต้องปลดล็อกด้วยรหัสจากแอดมินก่อน (ปลดล็อกครั้งเดียว จำไว้ในเครื่อง)
+    if (!unlocked) {
+      let validCode = HOST_CODE_FALLBACK;
+      try {
+        const snap = await get(child(ref(db), 'config/hostPassword'));
+        if (snap.exists()) validCode = String(snap.val());
+      } catch {
+        // อ่าน config ไม่ได้ ใช้รหัสเริ่มต้นแทน
+      }
+      if (hostPassword.trim() !== validCode) {
+        alert("รหัสสร้างห้องไม่ถูกต้อง — ต้องได้รับรหัสจากแอดมินก่อน");
+        return;
+      }
+      setUnlocked(true);
+      try { localStorage.setItem('nf_host_unlocked', '1'); } catch { /* ignore */ }
     }
 
     try {
@@ -149,6 +173,27 @@ export default function Home() {
                 ฉันจะเป็นแค่ Moderator (พนักงานคุมเกม) ไม่ลงเล่น
               </label>
             </div>
+
+            {!unlocked ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
+                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>🔑 รหัสสร้างห้อง (ขอจากแอดมิน)</label>
+                <input
+                  type="password"
+                  placeholder="ใส่รหัสเพื่อปลดล็อกการสร้างห้อง"
+                  value={hostPassword}
+                  onChange={(e) => setHostPassword(e.target.value)}
+                  style={{ padding: '0.75rem', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '1rem' }}
+                />
+              </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'rgba(52,199,89,0.12)', border: '1px solid rgba(52,199,89,0.4)', padding: '0.6rem 0.9rem', borderRadius: '12px' }}>
+                <span style={{ color: '#34c759', fontSize: '0.9rem' }}>✅ ปลดล็อกการสร้างห้องแล้ว</span>
+                <button
+                  onClick={() => { setUnlocked(false); try { localStorage.removeItem('nf_host_unlocked'); } catch { /* ignore */ } }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
+                >ล็อก</button>
+              </div>
+            )}
 
             <Button onClick={createRoom} size="lg">👑 สร้างห้องใหม่</Button>
             <Button onClick={() => setIsJoining(true)} variant="secondary" size="lg">👥 เข้าห้องเพื่อน</Button>

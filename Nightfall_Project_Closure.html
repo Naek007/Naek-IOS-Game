@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>Nightfall — สรุปโครงการ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Sarabun','Tahoma',sans-serif;
+    color:#2b2b33; background:#e9e9ee;
+    line-height:1.65; font-size:15px;
+  }
+  .page {
+    max-width:800px; margin:24px auto; background:#fff;
+    padding:48px 56px; border-radius:6px;
+    box-shadow:0 4px 24px rgba(0,0,0,.12);
+  }
+  /* Header */
+  .head { border-bottom:3px solid #6a1b9a; padding-bottom:18px; margin-bottom:26px; }
+  .brand { font-size:34px; font-weight:700; letter-spacing:3px; color:#6a1b9a; }
+  .brand .moon { color:#8a2be2; }
+  .subtitle { font-size:15px; color:#777; margin-top:2px; letter-spacing:.5px; }
+  /* Meta grid */
+  .meta { display:grid; grid-template-columns:120px 1fr; row-gap:5px; column-gap:12px;
+    font-size:14.5px; margin-bottom:30px; }
+  .meta .k { color:#8a2be2; font-weight:600; }
+  .meta a { color:#0060df; text-decoration:none; }
+  /* Sections */
+  h2 { font-size:16px; color:#6a1b9a; font-weight:700; margin:26px 0 10px;
+    padding-left:11px; border-left:4px solid #8a2be2; }
+  p { margin-bottom:8px; }
+  ul { margin:4px 0 10px 4px; list-style:none; }
+  li { position:relative; padding-left:18px; margin-bottom:5px; }
+  li::before { content:"▸"; position:absolute; left:0; color:#8a2be2; }
+  .sub { font-weight:600; color:#444; margin-top:8px; }
+  .muted { color:#777; font-size:13.5px; }
+  /* Budget table */
+  table { width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:15px; }
+  th,td { padding:10px 14px; text-align:left; }
+  thead th { background:#f2ecf7; color:#6a1b9a; font-weight:700; border-bottom:2px solid #d9c7e8; }
+  tbody td { border-bottom:1px solid #eee; }
+  td.amt { text-align:right; font-weight:600; white-space:nowrap; }
+  tr.total td { background:#6a1b9a; color:#fff; font-weight:700; font-size:16px; border:none; }
+  tr.total td.amt { text-align:right; }
+  .note { background:#faf6ff; border:1px solid #ecdcfb; border-radius:6px;
+    padding:12px 16px; margin-top:10px; font-size:13.8px; color:#555; }
+  .note b { color:#6a1b9a; }
+  /* Highlight box */
+  .box { background:#f7f4fb; border-left:4px solid #8a2be2; border-radius:0 6px 6px 0;
+    padding:14px 18px; margin:10px 0; }
+  /* Footer */
+  .foot { margin-top:36px; padding-top:16px; border-top:1px solid #e5e5ea;
+    display:flex; justify-content:space-between; font-size:13.5px; color:#666; flex-wrap:wrap; gap:8px; }
+  @media print {
+    body { background:#fff; font-size:13px; }
+    .page { box-shadow:none; margin:0; max-width:none; padding:24px 30px; border-radius:0; }
+    a { color:#0060df; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div class="brand"><span class="moon">🌙</span> NIGHTFALL</div>
+    <div class="subtitle">สรุปโครงการ &amp; ใบเสนอราคา — Board Game Moderator App</div>
+  </div>
+
+  <div class="meta">
+    <div class="k">โปรเจค</div><div>Nightfall (แอปคุมเกมบอร์ด)</div>
+    <div class="k">เกม</div><div>Werewolf (แวร์วูฟ) + Salem 1692 (ล่าแม่มด)</div>
+    <div class="k">สถานะ</div><div>เสร็จสมบูรณ์ / ขึ้นใช้งานจริงแล้ว</div>
+    <div class="k">ลิงค์เล่น</div><div><a href="https://boardgame-7015c.web.app">https://boardgame-7015c.web.app</a></div>
+    <div class="k">วันที่</div><div>17 กรกฎาคม 2569</div>
+  </div>
+
+  <h2>1. ภาพรวม</h2>
+  <p>เว็บแอปสำหรับเป็น “ตัวดำเนินเกม” (Moderator) ของบอร์ดเกมแนวจับไต๋ เปิดบนมือถือหรือคอมได้เลย ไม่ต้องโหลดติดตั้ง สร้างห้องด้วยรหัส 4 ตัวให้เพื่อนเข้ามาเล่นพร้อมกัน ตัวแอปคุมลำดับเกมและคำนวณผลให้อัตโนมัติ แทนการใช้คนคุมหรือกระดาษจดเอง</p>
+
+  <h2>2. สิ่งที่ทำ (ฟีเจอร์)</h2>
+  <ul>
+    <li>เล่นได้ 2 เกม : Werewolf และ Salem 1692</li>
+    <li>ระบบคุมกลางคืนอัตโนมัติ รองรับบทบาทกว่า 40 บท</li>
+    <li>เสียงพากย์ผู้ดำเนินเกม เล่นอัตโนมัติทุกจังหวะ</li>
+    <li>ธีมแยกสองเกมชัดเจน (Werewolf ม่วง / Salem แดง)</li>
+    <li>เล่นพร้อมกันแบบเรียลไทม์ ทุกเครื่องเห็นตรงกันทันที</li>
+    <li>รองรับหน้าจอมือถือ</li>
+  </ul>
+
+  <h2>3. ความซับซ้อนของงาน (ที่มาของราคา)</h2>
+  <p>งานนี้ใหญ่กว่าที่เห็นบนหน้าจอ หัวใจอยู่ที่ระบบหลังบ้านที่ต้องคิด logic และออกแบบการเล่นให้ถูกต้องทุกกรณี</p>
+  <div class="sub">ด้าน Logic (ตรรกะเกม)</div>
+  <ul>
+    <li>บทบาทกว่า 40 บท แต่ละบทมีความสามารถเฉพาะตัว ต้องเขียนกฎแยกทีละบท (ใครลืมตาก่อน-หลัง / ใครฆ่าใครได้ / ใครป้องกันใคร / ใช้ได้รอบไหน)</li>
+    <li>คำนวณผลตอนเช้าอัตโนมัติ ว่าใครตาย-ใครรอด รวมถึงลูกโซ่ตายตามกัน (คู่รัก, หมาป่าโลกันตร์), การสวมรอย (ภูตจำแลง), การชุบ/วางยาของแม่มด</li>
+    <li>เงื่อนไขแพ้ชนะหลายฝ่าย (ชาวบ้าน / หมาป่า / ลัทธิ / ยาจก) ต้องเช็คทุกตาว่าจบเกมหรือยัง</li>
+  </ul>
+  <div class="sub">ด้าน Realtime (เล่นพร้อมกันหลายเครื่อง)</div>
+  <ul>
+    <li>สถานะเกมต้องซิงก์ทุกเครื่องแบบเรียลไทม์ ไม่หลุด ไม่ค้าง รองรับคนเข้า-ออกและคนตายกลางเกม</li>
+  </ul>
+  <div class="sub">ด้าน Design (การออกแบบการใช้งาน)</div>
+  <ul>
+    <li>ออกแบบหน้าจอให้ทั้งคนคุมเกมและผู้เล่นใช้ง่ายบนมือถือ ทำ 2 เกมคนละกลไก แยก engine + แยกธีม และใส่ระบบเสียงพากย์ให้เล่นตรงจังหวะเอง</li>
+  </ul>
+
+  <h2>4. เทคโนโลยีที่ใช้</h2>
+  <div class="meta">
+    <div class="k">หน้าบ้าน</div><div>React + Vite</div>
+    <div class="k">หลังบ้าน</div><div>Firebase Realtime Database</div>
+    <div class="k">โฮสติ้ง</div><div>Firebase Hosting</div>
+    <div class="k">เก็บโค้ด</div><div>GitHub (private)</div>
+  </div>
+
+  <h2>5. ค่าใช้จ่ายระบบ (Firebase)</h2>
+  <p>ตอนนี้ใช้แผนของ Firebase ที่ยังไม่เสียเงิน เพราะการใช้งานยังอยู่ในโควตาที่ให้มาแบบสบายๆ</p>
+  <div class="sub">ทำไมตอนนี้ยังไม่ถึงขั้นเสียตัง</div>
+  <ul>
+    <li>แอปเก็บแค่ข้อมูลห้องเกมเล็กๆ (ไม่กี่ KB ต่อห้อง) ห่างจากลิมิตพื้นที่เก็บ 1 GB มาก</li>
+    <li>ข้อมูลที่รับส่งต่อการเล่นแต่ละเกมน้อยมาก ห่างจากลิมิต 10 GB/เดือน มาก</li>
+  </ul>
+  <div class="sub">จะเริ่มเสียเงินเมื่อไหร่</div>
+  <ul>
+    <li>ต่อเมื่อใช้เกินโควตา เช่น มีคนเล่นพร้อมกันเกิน 100 คนตลอดเวลา หรือรับส่งข้อมูลเกิน 10 GB/เดือน</li>
+    <li>ถ้าถึงจุดนั้นค่อยขยับเป็นแผนจ่ายตามใช้ (Blaze) ราว $5/GB ที่เก็บ และ $1/GB ที่โหลด — สำหรับเล่นในกลุ่ม/ในร้าน ยังห่างจากจุดนี้อีกไกล</li>
+  </ul>
+
+  <h2>6. สรุปงบประมาณ</h2>
+  <table>
+    <thead>
+      <tr><th>รายการ</th><th style="text-align:right">จำนวน</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ค่าทำโปรเจคช่วงเริ่มต้น (Start / Build)</td><td class="amt">9,000 บาท</td></tr>
+      <tr><td>ค่าระบบ / โฮสติ้งรายเดือน <span class="muted">(ยังไม่ถึงโควตาที่ต้องจ่าย)</span></td><td class="amt">0 บาท</td></tr>
+      <tr class="total"><td>รวมทั้งสิ้น</td><td class="amt">9,000 บาท</td></tr>
+    </tbody>
+  </table>
+  <div class="box">
+    งานลักษณะนี้ (ระบบเรียลไทม์ + 2 เกม + engine กว่า 40 บทบาท) ถ้าจ้างเอเจนซี่หรือฟรีแลนซ์ทั่วไป เรตปกติจะอยู่ราว <b>25,000–50,000 บาท</b> — ที่คิดให้ <b>9,000 บาท</b> เพราะเป็นงานที่เราคุยกันสบายๆ ผมได้ลองทำในสิ่งที่ชอบ และอยากให้พี่ได้ของคุ้มๆ ไปใช้ยาวๆ ครับ
+  </div>
+  <div class="note">
+    <b>*</b> นี่คือค่าช่วง “สร้างระบบ” (Start Phase) ซึ่งเป็นงานหนักสุด เพราะต้องคิด logic + ออกแบบ + สร้างทุกอย่างขึ้นมาจากศูนย์<br>
+    <b>*</b> ช่วง “ดูแลต่อ” (Maintenance) จะถูกกว่านี้มาก เพราะระบบมีอยู่แล้ว ไม่ต้องคิด/สร้างใหม่<br>
+    <b>*</b> ราคาปรับได้ตามสะดวก
+  </div>
+
+  <h2>7. การดูแลระบบต่อ (Maintenance)</h2>
+  <div class="box">
+    <p>หลังส่งมอบ ผมขอดูแลระบบให้ต่อครับ พอได้ลองเล่นจริงหลายรอบ มักเจอจุดเล็กๆ ที่อยากปรับหรือบั๊กที่เพิ่งโผล่ — ผมแก้ได้ไวเพราะเป็นคนเขียนเอง รู้โครงสร้างทั้งหมด ไม่ต้องหาคนใหม่มานั่งไล่โค้ดตั้งแต่ต้น และถ้าอยากได้ฟีเจอร์เพิ่ม (เกมใหม่ / ระบบล็อกอิน / สถิติผู้เล่น) ก็ต่อยอดจากของเดิมได้เลย</p>
+    <p style="margin-top:6px"><b>ค่าดูแลช่วงนี้ถูกกว่าค่าสร้างระบบมาก</b> เพราะไม่ต้องคิด/สร้างใหม่ตั้งแต่ต้น คิดเป็นรอบตามงานจริง ไม่ต้องเหมาจ่ายรายเดือนถ้ายังไม่จำเป็น</p>
+  </div>
+
+  <h2>8. หมายเหตุ</h2>
+  <ul>
+    <li>งานที่พักไว้ (ยังไม่รวมในราคานี้) : ระบบล็อกอิน / คุมสิทธิ์การสร้างห้อง</li>
+    <li>ถ้าเอาไปใช้ในร้านเชิงพาณิชย์ คุยรายละเอียดเพิ่มได้</li>
+  </ul>
+
+  <div class="foot">
+    <div style="min-width:250px">
+      <div style="color:#333;font-weight:600;margin-bottom:38px">ผู้จัดทำ / ผู้เสนอราคา</div>
+      <div>ลงชื่อ .......................................</div>
+      <div style="margin-top:5px">( ....................................... )</div>
+      <div style="margin-top:5px">ติดต่อ : ...............................</div>
+      <div style="margin-top:5px">วันที่ : ...............................</div>
+    </div>
+    <div style="min-width:250px">
+      <div style="color:#333;font-weight:600;margin-bottom:38px">ผู้ว่าจ้าง / ผู้อนุมัติ</div>
+      <div>ลงชื่อ .......................................</div>
+      <div style="margin-top:5px">( พี่คิง )</div>
+      <div style="margin-top:5px">วันที่ : ...............................</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
